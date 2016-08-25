@@ -5,6 +5,12 @@ importFrom( 'DESeq',
                 'estimateDispersions',
                 'nbinomTest',
                 'getVarianceStabilizedData')
+importFrom( 'DESeq2',
+                'DESeqDataSetFromMatrix',
+                'estimateSizeFactors',
+                'estimateDispersions',
+                'nbinomWaldTest',
+                'results')
 importFrom( 'samr', 
                 'SAMseq' )
 importFrom( 'limma', 

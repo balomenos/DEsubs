@@ -76,7 +76,7 @@ res <- geneVisualization(
             data=DEsubs.out, top=10,
             measures.topological=c( 'degree', 'betweenness', 'closeness',
                                     'hub_score', 'eccentricity', 'page_rank'),
-            measures.functional=c(  'KEGG', 'GO_bp','GO_cc', 'GO_mf', 
+            measures.functional=c(  'KEGG', 
                                     'Disease_OMIM', 'Disease_GAD', 
                                     'Drug_DrugBank','miRNA', 'TF'),
             size.topological=c(5,4),

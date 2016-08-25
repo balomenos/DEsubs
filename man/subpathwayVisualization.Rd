@@ -56,7 +56,7 @@ load(system.file('extdata', 'data.RData', package='DEsubs'))
 
 res <- subpathwayVisualization( 
                 data=DEsubs.out,  
-                references=c('GO', 'TF'), 
+                references=c('GO_mf', 'TF'), 
                 submethod='community.walktrap',
                 subname='sub1', 
                 scale=c(1.0, 1.0), export='pdf')

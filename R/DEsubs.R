@@ -221,7 +221,47 @@ DEanalysis <- function( count.matrix, DEGchoice, classes )
 
         return(adjpvalues)
     }
+    if ( DEGchoice == 'DESeq2' )
+    {
+        # run DESeq2
+        sink(tempfile())
+        DESeq2.ds <- DESeq2::DESeqDataSetFromMatrix(countData = count.matrix,
+                        colData = data.frame(condition = factor(classes)), 
+                        design = ~ condition)
+        DESeq2.ds <- DESeq2::estimateSizeFactors( DESeq2.ds )
+        DESeq2.ds <- DESeq2::estimateDispersions( DESeq2.ds, fitType="local")
+        DESeq2.ds <- DESeq2::nbinomWaldTest( DESeq2.ds )
+        DESeq2.results <- DESeq2::results(DESeq2.ds )
+        adjpvalues <- p.adjust(DESeq2.results$pvalue, method="BH")
+        names(adjpvalues) <- rownames(count.matrix)
+        sink()
 
+        return(adjpvalues)
+    }
+    if ( DEGchoice == 'vst2+limma' )
+    {
+        # vst(DESeq2)+limma
+        
+        sink(tempfile())
+        DESeq2.ds <- DESeq2::DESeqDataSetFromMatrix(countData = count.matrix,
+                        colData = data.frame(condition = factor(classes)), 
+                        design = ~ condition)
+        DESeq2.ds <- DESeq2::estimateSizeFactors( DESeq2.ds )
+        DESeq2.ds <- DESeq2::estimateDispersions( DESeq2.ds, fitType="local")
+        DESeq2.vst <- DESeq2::getVarianceStabilizedData( DESeq2.ds )
+        sink()
+
+        DESeq2.vst.fitlimma <- lmFit(  DESeq2.vst,
+                                        design=model.matrix(~factor(classes)))
+        DESeq2.vst.fitbayes <- eBayes(DESeq2.vst.fitlimma)
+        DESeq2.vst.pvalues  <- DESeq2.vst.fitbayes$p.value[, 2]
+        genes               <- rownames(DESeq2.vst.fitbayes$p.value)
+        DESeq2.vst.adjpvalues <- p.adjust(DESeq2.vst.pvalues, method="BH")
+        adjpvalues          <- DESeq2.vst.adjpvalues 
+        names(adjpvalues)   <- genes
+
+        return(adjpvalues)
+    }
     if  ( !is.null(DEGchoice) )
     {
         unsupportedOptions <- DEGchoice[!DEGchoice %in% supportedMethods]
