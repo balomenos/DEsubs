@@ -134,7 +134,8 @@ importFrom(  'methods',
                 'setClass',
                 'setGeneric',
                 'setMethod',
-                'signature')
+                'signature',
+                'new')
 export( 'DEsubs', 
                 'geneVisualization', 
                 'organismVisualization',
