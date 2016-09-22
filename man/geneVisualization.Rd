@@ -15,7 +15,7 @@ geneVisualization(data, measures.topological, measures.functional,
 \item{measures.topological}{Functional visualization type(s). }
 \item{measures.functional}{Topological visualization type(s). }
 \item{measures.barplot}{Gene level Visualization type}
-\item{topGenes}{Number of genes with greater Q-values. Default value is 20.  }
+\item{topGenes}{Number of genes with greater Q-values. Default value is 10.  }
 \item{colors.topological}{ A custom color mode which overrrides the 
 default settings.}
 \item{colors.functional}{ A custom color mode which overrrides the default 

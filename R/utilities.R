@@ -1,16 +1,19 @@
-fillMatrixList  <- function( L, maxLen )
+.fillMatrixList  <- function( data, maxLen )
 {
-    if (is.null(L))     { return(L) }
+    # Zero pads a list of matrices (data) each having different number of 
+    # columns. If the maximum number of columns is availiable, providing 
+    # is as an argument speeds up computation time (maxlen).
+    if (is.null(data))     { return(data) }
 
     # If input is not a list, return original data
-    if (!is.list(L))    { return(L) }
+    if (!is.list(data))    { return(data) }
 
     lens <- c()
-    for (i in 1:length(L))
+    for (i in seq_len(length(data)) )
     {    
-        if (!is.null(L[[i]]))
+        if (!is.null(data[[i]]))
         {
-            lens <- c(lens, getLengths(L[[i]]))
+            lens <- c(lens, .getLengths(data[[i]]))
         }
     }
 
@@ -22,16 +25,16 @@ fillMatrixList  <- function( L, maxLen )
 
 
     # If no filling is necessary, return original data
-    if (length(unique(lens)) == 1) { return(L) }
+    if (length(unique(lens)) == 1) { return(data) }
 
     # Enforce maximum length on each subpath of each pathway
-    res <- L
-    for (i in 1:length(L))
+    res <- data
+    for (i in seq_len(length(data)) )
     {
-        submat <- L[[i]]
+        submat <- data[[i]]
         if (is.null(submat)) { next() }
         replmat <- matrix(0, nrow=nrow(submat), ncol=maxLen)
-        for (j in 1:nrow(submat))
+        for (j in seq_len(nrow(submat)) )
         {   
             replmat[j,] <- c(submat[j,], rep(0, maxLen - length(submat[j,])))
         }
@@ -41,21 +44,22 @@ fillMatrixList  <- function( L, maxLen )
     return(res)
 }
 
-unlistToMatrix  <- function( L, mode='rbind' )
+.unlistToMatrix  <- function( data, mode='rbind' )
 {
-    if (is.null(L))     { return(L) }
+    # Reshapes a list of matrices to one matrix in a full vectorized fashion
+    if (is.null(data))     { return(data) }
 
     # If input is already a matrix, return original data.
-    if (class(L) == 'matrix') { return(L) }
+    if (class(data) == 'matrix') { return(data) }
 
     # Find what type of data the list holds
     type <- NULL
-    for (i in 1:length(L))
+    for (i in seq_len(length(data)) )
     {
-        if(!is.null(L[[i]]))
+        if(!is.null(data[[i]]))
         {
-            if (is.vector(L[[i]])) type <- 'vector'
-            if (is.matrix(L[[i]])) type <- 'matrix'
+            if (is.vector(data[[i]])) type <- 'vector'
+            if (is.matrix(data[[i]])) type <- 'matrix'
             break()
         }
     }
@@ -65,31 +69,31 @@ unlistToMatrix  <- function( L, mode='rbind' )
     # List of vectors of variable size
     if (type == 'vector')
     {
-        lens <- sapply(L, function(x) { length(x) })
-        M    <- matrix(0, nrow=length(L), ncol=max(lens))
-        for (i in 1:length(L)) 
+        lens <- sapply(data, function(x) { length(x) })
+        M    <- matrix(0, nrow=length(data), ncol=max(lens))
+        for (i in seq_len(length(data)) ) 
         {
-            M[i,1:lens[i]] <- L[[i]] 
+            M[i,1:lens[i]] <- data[[i]] 
         }
-        rownames(M) <- names(L)
+        rownames(M) <- names(data)
     }
 
     # A list of matrices with at least one common dimension size
     # rbind:same number of columns, cbind:same number of rows
     if (type == 'matrix')
     {
-        M      <- do.call(mode, L)
-        lnames <- names(L) 
+        M      <- do.call(mode, data)
+        lnames <- names(data) 
 
         if (length(lnames) > 0)
         {
-            lens   <- sapply(L, function(x) 
+            lens   <- sapply(data, function(x) 
                                 { 
                                     if (!is.null(x)) nrow(x) else 0 
                                 } )
             rnames <- vector(mode='numeric', length=nrow(M))
             ctr   <- 0
-            for (i in 1:length(lnames))
+            for (i in seq_len(length(lnames)) )
             {
                 if (lens[i] > 0)
                 {
@@ -103,7 +107,7 @@ unlistToMatrix  <- function( L, mode='rbind' )
     return(M)
 }
 
-getLengths      <- function( M )
+.getLengths      <- function( data )
 {
     # 
     # Count length of non zero elements in each row of a matrix.
@@ -111,8 +115,8 @@ getLengths      <- function( M )
     # and a suffix of consecutive zeros denote absence of data.
     # Ideal for matrices with a large number of rows.
     #
-    esub <- cbind(M, rep(0, nrow(M)))
-    esub <- rbind(esub, c(-1, rep(0, ncol(M))))
+    esub <- cbind(data, rep(0, nrow(data)))
+    esub <- rbind(esub, c(-1, rep(0, ncol(data))))
     df   <- which(diff(which(c(t(esub)) != 0)) - 1 > 0)
     len  <- c(df[1], diff(df))
 
@@ -120,14 +124,14 @@ getLengths      <- function( M )
 }
 
 
-dir.create.rec <- function(fp) 
+.dir.create.rec <- function(file) 
 {
-    if( !file.exists(fp) ) 
+    if( !file.exists(file) ) 
     {
-        dir.create.rec(dirname(fp))
-        if ( gsub('\\.', '', fp) == fp  ) 
+        .dir.create.rec(dirname(file))
+        if ( gsub('\\.', '', file) == file  ) 
         {
-            dir.create(fp, recursive=FALSE, showWarnings=TRUE) 
+            dir.create(file, recursive=FALSE, showWarnings=TRUE) 
         }
     }
 } 

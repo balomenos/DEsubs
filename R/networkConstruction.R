@@ -1,9 +1,10 @@
-constructNetwork <- function( org, mRNAexpr, mRNAnomenclature, pathways )
+.constructNetwork <- function( org, mRNAexpr, mRNAnomenclature='entrezgene', 
+                                pathways='all')
 {
     # If a filename is given, read a text file from the 'User' directory.
     if ( class(mRNAexpr) == 'character' )
     {
-        dir <- paste0(cache$baseDir, '//User') 
+        dir <- paste0(cache[['baseDir']], '//User') 
         mRNAexpr <- readLines(paste(dir, mRNAexpr, sep='//'))
         mRNAexpr <- strsplit(mRNAexpr, '\t')
         mRNAexpr <- do.call('rbind', mRNAexpr)
@@ -13,15 +14,13 @@ constructNetwork <- function( org, mRNAexpr, mRNAnomenclature, pathways )
     }
 
     # Change nomenclature if necessary
-    if ( missing(mRNAnomenclature) )
-        { mRNAnomenclature <- 'entrezgene' }
 
     if ( mRNAnomenclature != 'entrezgene' ) 
     {
         file <- 'extdata//Data//libraryEntrezToExternalNomenclature.RData'
         file  <- system.file(file, package='DEsubs')
         load(file, e <- new.env())
-        orgLib <- e$libraryEntrezToExternalNomenclature[[org]]
+        orgLib <- e[['libraryEntrezToExternalNomenclature']][[org]]
         lib <- orgLib[[mRNAnomenclature]]
 
         # Keep rows with entrez ids
@@ -37,10 +36,9 @@ constructNetwork <- function( org, mRNAexpr, mRNAnomenclature, pathways )
     # Create pathway graph
     file  <- system.file('extdata//Data//edgeLists.RData', package='DEsubs')
     load(file, e <- new.env())
-    edgeList <- e$edgeLists[[org]]
+    edgeList <- e[['edgeLists']][[org]]
 
     # Filter edgelist according to pathway type
-    if ( missing(pathways) ) { pathways <- 'All' }
     idx <- sapply(edgeList, is.factor)
     edgeList[idx] <- lapply(edgeList[idx], as.character)
 
@@ -61,15 +59,10 @@ constructNetwork <- function( org, mRNAexpr, mRNAnomenclature, pathways )
 }
 
 
-pruneNetwork <- function(   edgeList, mRNAexpr, DEGchoice, classes, 
-                            DEGthresh, corr_threshold , org, verbose, 
-                            CORtool, rankedList)
+.pruneNetwork <- function(   edgeList, mRNAexpr, DEGchoice, classes, 
+                            DEGthresh, corr_threshold , org, verbose=TRUE, 
+                            CORtool, rankedList=NULL)
 {
-    if ( missing( rankedList ) )
-        { rankedList <- NULL }
-
-    if ( missing(verbose) ) { verbose <- TRUE }
-
 
     CORtool.options <- c('pearson', 'kendall', 'spearman')
     if ( !CORtool %in% CORtool.options)
@@ -77,8 +70,6 @@ pruneNetwork <- function(   edgeList, mRNAexpr, DEGchoice, classes,
         message(CORtool, ' option not availiable.')
         message('Availiable options:', CORtool.options)
     }
-
-    if ( missing(verbose) ) { verbose <- TRUE }
 
     #
     # Phase 1 - Prune nodes
@@ -92,7 +83,7 @@ pruneNetwork <- function(   edgeList, mRNAexpr, DEGchoice, classes,
         KEGGgenes <- unique(as.vector(t(edgeList[, 1:2])))
         keggIdx <- which( rownames(mRNAexpr) %in% KEGGgenes )        
         mRNAexpr <- mRNAexpr[keggIdx, ]
-        genes <- DEanalysis( count.matrix=mRNAexpr, DEGchoice=DEGchoice, 
+        genes <- .DEanalysis( count.matrix=mRNAexpr, DEGchoice=DEGchoice, 
                             classes=classes )
     }
     # The Q-values for the differentially expressed genes have been supplied
@@ -102,7 +93,7 @@ pruneNetwork <- function(   edgeList, mRNAexpr, DEGchoice, classes,
         # A filename is given as input, stored within 'extdata/User' directory
         if ( class(rankedList) != 'numeric')
         {
-            file <- paste0(cache$usrDir, '//', rankedList)
+            file <- paste0(cache[['usrDir']], '//', rankedList)
             data <- read.table(file, dec = '.', sep=' ')
             genes <- as.numeric(data[, 2]) # Q-values
             names(genes) <- data[, 1] # Gene names
@@ -150,7 +141,7 @@ pruneNetwork <- function(   edgeList, mRNAexpr, DEGchoice, classes,
     #     { message('\n\tEdges before EdgeScore: ', nrow(edgeList)) }
     
     # Prune edgelist
-    edgeList <- pruneEdges(edgeList, mRNAexpr, corr_threshold, CORtool)
+    edgeList <- .pruneEdges(edgeList, mRNAexpr, corr_threshold, CORtool)
     
     # Remove degs whose edges have been competely removed
     uGenes <- unique(as.vector(as.matrix(edgeList[, -3])))
@@ -166,10 +157,10 @@ pruneNetwork <- function(   edgeList, mRNAexpr, DEGchoice, classes,
 }
 
 
-pruneEdges   <- function( edgeList, mRNAexpr, thr, CORtool )
+.pruneEdges   <- function( edgeList, mRNAexpr, thr, CORtool )
 {
     # Find expression
-    mapper <- 1:nrow(mRNAexpr)
+    mapper <- seq_len(nrow(mRNAexpr))
     names(mapper) <- rownames(mRNAexpr)
 
     exprEdgelistSource <- mRNAexpr[mapper[edgeList[, 1]],]
@@ -182,7 +173,7 @@ pruneEdges   <- function( edgeList, mRNAexpr, thr, CORtool )
     }
 
     CR <- vector(mode='numeric', length=nrow(edgeList))
-    for ( i in 1:nrow(edgeList) )
+    for ( i in seq_len(nrow(edgeList)) )
     {
         CR[i] <- cor(exprEdgelistSource[i,], exprEdgelistDestin[i,], 
                     method = CORtool )
@@ -194,7 +185,7 @@ pruneEdges   <- function( edgeList, mRNAexpr, thr, CORtool )
     # Score edges
     hitIdx <- vector(mode='numeric', length=nrow(edgeList))
 
-    for ( i in 1:nrow(edgeList) )
+    for ( i in seq_len(nrow(edgeList)) )
     {
         type <- edgeList[i, 3]
         if ( type == 1 ) { reg <- 1 }
@@ -211,7 +202,7 @@ pruneEdges   <- function( edgeList, mRNAexpr, thr, CORtool )
 
     if ( nrow(edgeListPruned) == 0 )
         { return( edgeListPruned ) }
-    rownames(edgeListPruned) <- 1:nrow(edgeListPruned)
+    rownames(edgeListPruned) <- seq_len(nrow(edgeListPruned))
     
     
     return(edgeListPruned)

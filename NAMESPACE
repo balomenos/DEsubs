@@ -129,6 +129,12 @@ importFrom( 'jsonlite',
                 'toJSON')
 importFrom(  'tools',
                 'file_ext')
+importFrom(  'methods',
+                'representation',
+                'setClass',
+                'setGeneric',
+                'setMethod',
+                'signature')
 export( 'DEsubs', 
                 'geneVisualization', 
                 'organismVisualization',

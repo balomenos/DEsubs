@@ -1,5 +1,5 @@
 Package: DEsubs
-Version: 0.99.3
+Version: 0.99.4
 Date: 2015-07-19
 Title: DEsubs: an R package for flexible identification of differentially 
         expressed subpathways using RNA-seq expression experiments
@@ -26,7 +26,7 @@ NeedsCompilation: no
 LazyLoad: yes
 Imports: graph, igraph, RBGL, circlize, limma, edgeR, samr, EBSeq, NBPSeq, 
         DESeq, stats, grDevices, graphics, pheatmap, utils, ggplot2, Matrix, 
-        jsonlite, tools, DESeq2
+        jsonlite, tools, DESeq2, methods
 Suggests: RUnit, BiocGenerics, knitr
 VignetteBuilder: knitr
 biocViews: SystemsBiology, GraphAndNetwork, Pathways, KEGG, GeneExpression,

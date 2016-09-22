@@ -1,5 +1,5 @@
 
-subpathwayTypes <- function(grouping)
+subpathwayTypes <- function(grouping='all')
 {
     stream.choices <- c('fwd',
                         'bwd')
@@ -22,7 +22,7 @@ subpathwayTypes <- function(grouping)
                         'topological.page_rank',
                         'topological.start_nodes')
 
-    functional.choices <- paste0('functional.', getFunctionalMeasures())
+    functional.choices <- paste0('functional.', .getFunctionalMeasures())
     source.choices <- c(topological.choices, functional.choices)
     
     # Neighborhood
@@ -52,7 +52,7 @@ subpathwayTypes <- function(grouping)
                             communityCases, 
                             componentCases)
 
-    if ( missing(grouping) ) { grouping <- 'all' }
+
     if ( is.null(grouping) || grouping == '' ) { return(NULL) }
 
 
@@ -63,7 +63,7 @@ subpathwayTypes <- function(grouping)
         intMeasures <- c('bwd', 'fwd', 'stream', 'neighbourhood', 
                         'cascade', 'community', 'component', 
                         'topological', 'functional', 'DEG')
-        extMeasures <- getExternalMeasures()
+        extMeasures <- .getExternalMeasures()
 
         if ( type %in% c(intMeasures, extMeasures) )
         {
@@ -79,11 +79,11 @@ subpathwayTypes <- function(grouping)
 }
 
 
-subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
-                                verbose )
+.subpathwayAnalysis <- function( edgeList, method=c(), DEgenes, a=3, b=10, 
+                                org, verbose=TRUE )
 {
-    if ( missing(verbose) ) { verbose <- TRUE }
-    if ( missing(method) ) { method <- c() }
+    # a: Number of neighbors
+    # b: Number of top-nodes 
 
     supportedMethods <- subpathwayTypes()
 
@@ -101,7 +101,6 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
         message('Performing subpathway analysis ( ', method , ' )...', 
                 appendLF = FALSE) 
     }
-
 
     # Create an igraph object from an edgelist
     gi <- graph_from_edgelist(as.matrix(edgeList[, 1:2]))
@@ -142,7 +141,7 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
                         'topological.page_rank',
                         'topological.start_nodes')
 
-    functional.choices <- paste0('functional.', getFunctionalMeasures())
+    functional.choices <- paste0('functional.', .getFunctionalMeasures())
 
     source.choices <- c(topological.choices, functional.choices)
 
@@ -167,16 +166,13 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
     compCases_c <- apply(cases, 1, function(x) {paste0(x, collapse='')})
     componentCases <- c(compCases_a, compCases_b, compCases_c)
 
-    if ( missing(a) ) a <- 3    # Number of neighbors
-    if ( missing(b) ) b <- 10   # Number of top-nodes 
-
 
     if ( method %in% neighborCases )
     {
         sourceMeasure <- gsub('fwd.neighbourhood.', '', method)
         sourceMeasure <- gsub('bwd.neighbourhood.', '', sourceMeasure)
 
-        nodes <- measureToNodes(graph=gi,
+        nodes <- .measureToNodes(graph=gi,
                                 measure=sourceMeasure,
                                 org=org,
                                 DEgenes=DEgenes )
@@ -191,12 +187,12 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
         }
 
         R <- vector(mode='list', length=length(sourceNodes))
-        for (i in 1:length(sourceNodes))
+        for (i in seq_len(length(sourceNodes)) )
         {
             R[[i]] <- names(unlist(ego(graph=gi, order=a, 
                                     nodes=sourceNodes[i])))
         }
-        names(R) <- paste0('sub', 1:length(R))
+        names(R) <- paste0('sub', seq_len(length(R)))
 
         out        <- list(R)
         names(out) <- paste0('subAnalysis.', method)
@@ -205,7 +201,7 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
     {
         sourceMeasure <- gsub('fwd.stream.', '', method)
         sourceMeasure <- gsub('bwd.stream.', '', sourceMeasure)
-        nodes <- measureToNodes(graph=gi,
+        nodes <- .measureToNodes(graph=gi,
                                 measure=sourceMeasure,
                                 org=org,
                                 DEgenes=DEgenes )
@@ -220,17 +216,17 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
         }
 
         R <- vector(mode='list', length=length(sourceNodes))
-        for (i in 1:length(sourceNodes))
+        for (i in seq_len(length(sourceNodes)) )
         {
             res <- names(dfs(graph=gi, root=sourceNodes[i], 
-                            unreachable=FALSE)$order)
+                            unreachable=FALSE)[['order']])
             R[[i]] <- res[which(!is.na(res))]
         }
         names(R) <- sourceNodes
 
         # Keep subpathways with more than two members
         R <- R[which( lapply(R, function(x) { length(x) }) >= 3 )]
-        if ( length(R) > 0 ) { names(R) <- paste0('sub', 1:length(R)) }
+        if ( length(R) > 0 ) { names(R) <- paste0('sub', seq_len(length(R)) ) }
 
         out        <- list(R)
         names(out) <- paste0('subAnalysis.', method)
@@ -241,7 +237,7 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
         sourceMeasure <- gsub('bwd.cascade.', '', sourceMeasure)
 
         # Find all source nodes
-        nodes <- measureToNodes(graph=gi,
+        nodes <- .measureToNodes(graph=gi,
                                 measure=sourceMeasure,
                                 org=org,
                                 DEgenes=DEgenes )
@@ -289,12 +285,13 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
 
             combinations <- expand.grid( sourceNodes, destinNodes )
             names(lpaths) <- lnames
-            names(lpaths) <- paste0('sub', 1:length(lpaths))
+            names(lpaths) <- paste0('sub', seq_len(length(lpaths)) )
 
             # Remove NULL results and flatten first level of results 
-            lpaths <- lpaths[which(lapply(lpaths, length) > 2)]
-
             lpaths <- do.call(c, lpaths)
+            # Keep subpathways with more than two members
+            lpaths <- lpaths[which(lapply(lpaths, length) > 2)]
+            # Keep genes ids
             lpaths <- lapply(lpaths, function(x) { names(x) } )
         }
 
@@ -309,7 +306,7 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
             R <- vector( mode='list', length=length(gr) )
             if ( length(gr) > 0 )
             {
-                for ( i in 1:length(gr) ) { R[[i]] <- (gr[[i]]) }
+                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
             }
         }
         if ( method == 'community.edge_betweenness' )
@@ -318,7 +315,7 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
             R <- vector( mode='list', length=length(gr) )
             if ( length(gr) > 0 )
             {
-                for ( i in 1:length(gr) ) { R[[i]] <- (gr[[i]]) }
+                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
             }
         }
         if ( method == 'community.fast_greedy' )
@@ -327,7 +324,7 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
             R <- vector( mode='list', length=length(gr) )
             if ( length(gr) > 0 )
             {
-                for ( i in 1:length(gr) ) { R[[i]] <- (gr[[i]]) }
+                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
             }
         }
         if ( method == 'community.leading_eigen' )
@@ -336,7 +333,7 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
             R <- vector( mode='list', length=length(gr) )
             if ( length(gr) > 0 )
             {
-                for ( i in 1:length(gr) ) { R[[i]] <- (gr[[i]]) }
+                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
             }
         }
         if ( method == 'community.infomap' )
@@ -345,7 +342,7 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
             R <- vector( mode='list', length=length(gr) )
             if ( length(gr) > 0 )
             {
-                for ( i in 1:length(gr) ) { R[[i]] <- (gr[[i]]) }
+                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
             }
         }
         if ( method == 'community.louvain' )
@@ -354,11 +351,11 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
             R <- vector( mode='list', length=length(gr) )
             if ( length(gr) > 0 )
             {
-                for ( i in 1:length(gr) ) { R[[i]] <- (gr[[i]]) }
+                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
             }       
         }
 
-        if ( length(R) > 0 ) { names(R) <- paste0('sub', 1:length(R)) }
+        if ( length(R) > 0 ) { names(R) <- paste0('sub', seq_len(length(R)) ) }
 
         out <- list(R)
         names(out) <- paste0('subAnalysis.', method)
@@ -371,7 +368,8 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
             R <- vector( mode='list', length=length(gr) )
             if ( length(gr) > 0 )
             {
-                for ( i in 1:length(gr) ) { R[[i]] <- names(unlist(gr[i])) }
+                for ( i in seq_len(length(gr)) ) 
+                                { R[[i]] <- names(unlist(gr[i])) }
             }
         }
 
@@ -396,9 +394,9 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
             # Consider only actual interactions between genes.
             if ( length(ksubs) > 0 )
             {
-                ksubs <- unlistToMatrix(fillMatrixList(ksubs))
+                ksubs <- .unlistToMatrix(.fillMatrixList(ksubs))
                 R <- vector(mode='list', length=nrow(ksubs))
-                for (j in 1:nrow(ksubs) )
+                for (j in seq_len(nrow(ksubs)) )
                 {
                     # Edge list indexes
                     r1  <- as.numeric(is.element( edgeList[,1], ksubs[j, ]) )
@@ -420,7 +418,7 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
             corDist  <- coreness(gi)
             R <- names(corDist)[which(corDist == p)]
         }
-        if ( length(R) > 0 ) { names(R) <- paste0('sub', 1:length(R)) }
+        if ( length(R) > 0 ) { names(R) <- paste0('sub', seq_len(length(R)) ) }
 
 
         out <- list(R)
@@ -434,18 +432,18 @@ subpathwayAnalysis <- function( edgeList, method, DEgenes, a, b, org,
 }
 
 
-getFunctionalNodes <- function( graph, targets, org )
+.getFunctionalNodes <- function( graph, targets, org )
 {
     # Extract nodes from graph and keep term related ones
     graphGenes <- names(V(graph))
     # Unique target genes in entrez 
     uGenesFromTargets <- unique(as.vector(targets))
-    uGenesFromTargets <- unname(changeAnnotation(data=uGenesFromTargets, 
+    uGenesFromTargets <- unname(.changeAnnotation(data=uGenesFromTargets, 
                                 org='hsa', choice='HGNCtoEntrez'))
     uGenesFromTargets <- uGenesFromTargets[!is.na(uGenesFromTargets)]
     # Keep targets intersecting with graph genes
     targetGenesInGraph <- graphGenes[graphGenes %in% uGenesFromTargets]
-    targetGenesInGraph <- unname(changeAnnotation(data=targetGenesInGraph, 
+    targetGenesInGraph <- unname(.changeAnnotation(data=targetGenesInGraph, 
                                 org='hsa', choice='entrezToHGNC'))
 
     # Filter target genes with graph genes
@@ -454,14 +452,14 @@ getFunctionalNodes <- function( graph, targets, org )
 
     nodes <- names(sort(table(targets), decreasing=TRUE))
     # Change to entrez gene annotation
-    nodes <- unname(changeAnnotation(data=nodes, org=org, 
+    nodes <- unname(.changeAnnotation(data=nodes, org=org, 
                     choice='HGNCtoEntrez'))
 
     return (nodes)
 }
 
 
-measureToNodes <- function ( graph, measure, org, DEgenes=NULL )
+.measureToNodes <- function ( graph, measure, org, DEgenes=NULL )
 {
     if ( measure == 'topological.degree' ) 
     { 
@@ -477,7 +475,7 @@ measureToNodes <- function ( graph, measure, org, DEgenes=NULL )
     }
     if ( measure == 'topological.hub_score' ) 
     { 
-        nodes <- names(sort(hub_score(graph)$vector, decreasing=TRUE))
+        nodes <- names(sort(hub_score(graph)[['vector']], decreasing=TRUE))
     }
     if ( measure == 'topological.eccentricity' ) 
     { 
@@ -485,7 +483,7 @@ measureToNodes <- function ( graph, measure, org, DEgenes=NULL )
     }
     if ( measure == 'topological.page_rank' ) 
     { 
-        nodes <- names(sort(page_rank(graph)$vector, decreasing=TRUE))
+        nodes <- names(sort(page_rank(graph)[['vector']], decreasing=TRUE))
     }
     if ( measure == 'topological.start_nodes' ) 
     {
@@ -498,7 +496,7 @@ measureToNodes <- function ( graph, measure, org, DEgenes=NULL )
         nodes <- names(sort(DEgenes, decreasing=FALSE))
     }
 
-    if ( measure %in% paste0('functional.', getExternalMeasures() ) )
+    if ( measure %in% paste0('functional.', .getExternalMeasures() ) )
     {
         if ( org != 'hsa' )
         { 
@@ -509,8 +507,8 @@ measureToNodes <- function ( graph, measure, org, DEgenes=NULL )
 
         # Find genes with most occurences in the selected term
         measure <- gsub('functional.', '', measure)
-        targets <- loadTermData( type=measure )
-        nodes <- getFunctionalNodes(graph=graph, targets=targets, org=org)
+        targets <- .loadTermData( type=measure )
+        nodes <- .getFunctionalNodes(graph=graph, targets=targets, org=org)
     }
 
     return( nodes )
@@ -521,7 +519,7 @@ measureToNodes <- function ( graph, measure, org, DEgenes=NULL )
 #
 # Data-related functions
 #
-changeAnnotation <- function(data, org, choice)
+.changeAnnotation <- function(data, org, choice)
 {
     if ( org == 'hsa' )
     {
@@ -529,7 +527,7 @@ changeAnnotation <- function(data, org, choice)
 
         load(paste(dir, 'libraryEntrezToHGNC.RData', sep='//'), 
             e <- new.env())
-        libraryEntrezToHGNC <- e$libraryEntrezToHGNC
+        libraryEntrezToHGNC <- e[['libraryEntrezToHGNC']]
         if ( choice == 'entrezToHGNC' )
         {
             data <- libraryEntrezToHGNC[data]    
@@ -545,7 +543,7 @@ changeAnnotation <- function(data, org, choice)
     return(data)
 }
 
-getExternalMeasures <- function()
+.getExternalMeasures <- function()
 {
     defaultReferences <- c( 'KEGG',
                             'GO_bp',
@@ -558,7 +556,7 @@ getExternalMeasures <- function()
                             'TF')
 
     # Search for new gene sets
-    files <- list.files(cache$datDir)
+    files <- list.files(cache[['datDir']])
     otherFiles <- c('libraryEntrezToHGNC.RData', 
                     'edgeLists.RData',
                     'libraryEntrezToExternalNomenclature.RData')
@@ -576,10 +574,10 @@ getExternalMeasures <- function()
     return( supportedReferences )
 }
 
-getFunctionalMeasures <- function()
+.getFunctionalMeasures <- function()
 {
 
-    return( c('DEG', getExternalMeasures()) )
+    return( c('DEG', .getExternalMeasures()) )
 }
 
 
@@ -587,16 +585,16 @@ getFunctionalMeasures <- function()
 # Base data
 #
 
-loadTermData <- function( type )
+.loadTermData <- function( type )
 {
-    dir <- cache$datDir
-    supportedTerms <- getExternalMeasures()
+    dir <- cache[['datDir']]
+    supportedTerms <- .getExternalMeasures()
 
-    if ( type %in% getExternalMeasures() )
+    if ( type %in% .getExternalMeasures() )
     {
         iFile <- paste0( dir, '//' ,type, '.RData' )
         load(iFile, e <- new.env())        
-        targetsPerClass <- e$targetsPerClass
+        targetsPerClass <- e[['targetsPerClass']]
     }else{
         message('Type ', type, ' not supported.')
     }

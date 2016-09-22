@@ -47,11 +47,11 @@ using the following commands, which currently reflect the default directories
 for each architecture:
 
 ```{r eval=TRUE, echo=TRUE}
-if (.Platform$OS.type == 'unix') 
+if (.Platform[['OS.type']] == 'unix') 
 { 
     options('DEsubs_CACHE'=file.path(path.expand("~"), 'DEsubs') ) 
 }
-if (.Platform$OS.type == 'windows') 
+if (.Platform[['OS.type']] == 'windows') 
 { 
     options('DEsubs_CACHE'=file.path(
             gsub("\\\\", "/", Sys.getenv("USERPROFILE")), "AppData/DEsubs"))
@@ -70,11 +70,11 @@ load(system.file('extdata', 'data.RData', package='DEsubs'))
 ```{r setup, echo=FALSE, include=FALSE }
 # set global chunk options: 
 
-if (.Platform$OS.type == 'unix') 
+if (.Platform[['OS.type']] == 'unix') 
 { 
     options('DEsubs_CACHE'=file.path(path.expand("~"), 'DEsubs') ) 
 }
-if (.Platform$OS.type == 'windows') 
+if (.Platform[['OS.type']] == 'windows') 
 { 
     options('DEsubs_CACHE'=file.path(
             gsub("\\\\", "/", Sys.getenv("USERPROFILE")), "AppData/DEsubs"))
@@ -704,7 +704,7 @@ res <- geneVisualization(
             export='plot', verbose=FALSE)
 ```
 
-```{r, echo=FALSE, fig.width=3.9, fig.height=4.9, fig.cap=cap }
+```{r, echo=FALSE, fig.width=6.2, fig.height=5.2, fig.cap=cap }
 
 cap <- 'Bars illustrate the genes with the highest Q-values.'
 
