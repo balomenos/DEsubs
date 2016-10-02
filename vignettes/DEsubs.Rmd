@@ -605,10 +605,10 @@ of an *.RData* file storing a matrix, named *targetsPerClass*.
 The matrix should store the terms as rownames and the targets of 
 each term at each row. Since some rows are bound to havemore elements that 
 others, empty cells should be filled with '0' characters.
-Once the file is stored in the  *DEsubs/Data* directory, it will be permanently 
+Once the file is stored in a directory *DEsubs/Data*, it will be permanently 
 availiable along with the other eight resources, using the filename (without 
-the *.RData* suffix) as the ew functional feature type along with the any of 
-the default eight. 
+the *.RData* suffix) as the new functional feature type along with the any of 
+the default eight features. 
 
 The enrichment analysis is performed based on the cumulative hypergeometric 
 distribution, where G is the number of genes in the user input list, l the 
@@ -692,7 +692,7 @@ The total picture of the enriched subpathways is performed with dot plots.
 ```{r,  eval=FALSE, echo=TRUE }
 
 res <- geneVisualization(  
-            data=DEsubs.out, top=10, 
+            DEsubs.out=DEsubs.out, top=10, 
             measures.topological=c( 'degree', 'betweenness', 'closeness',
                                     'hub_score', 'eccentricity', 'page_rank'),
             measures.functional=c(  'KEGG', 'GO_bp','GO_cc', 'GO_mf', 
@@ -709,7 +709,7 @@ res <- geneVisualization(
 cap <- 'Bars illustrate the genes with the highest Q-values.'
 
 res <- geneVisualization(  
-            data=DEsubs.out, 
+            DEsubs.out=DEsubs.out, 
             top=10,
             measures.topological=NULL,
             measures.functional=NULL,
@@ -727,7 +727,7 @@ functional measures. The values are scaled and the red graduation indicates
 the value degree.'
 
 res <- geneVisualization(  
-            data=DEsubs.out, 
+            DEsubs.out=DEsubs.out, 
             top=12,
             measures.topological=NULL,
             measures.functional=c(  'KEGG', 'GO_bp','GO_cc', 'GO_mf', 
@@ -747,7 +747,7 @@ topological measures. The values are scaled and the red graduation indicates
 the value degree.'
 
 res <- geneVisualization(  
-            data=DEsubs.out, 
+            DEsubs.out=DEsubs.out, 
             top=12,
             measures.topological=c( 'degree', 'betweenness', 'closeness',
                                     'hub_score', 'eccentricity', 'page_rank'),
@@ -773,7 +773,7 @@ that it can be used by external software, such as *.txt*, *.json*, *.gml*,
 ```{r, eval=FALSE, echo=TRUE }
 
 res <- subpathwayToGraph(
-                    data=DEsubs.out, 
+                    DEsubs.out=DEsubs.out, 
                     submethod='community.walktrap', 
                     subname='sub6', verbose=FALSE,
                     export=c('plot', 'gml', 'edgelist') )
@@ -791,7 +791,7 @@ degree between the respective genes. Green or red color in edges indicates
 the positive or negative correlation respectively'
 
 res <- subpathwayToGraph( 
-                    data=DEsubs.out, 
+                    DEsubs.out=DEsubs.out, 
                     submethod='community.walktrap', 
                     subname='sub6', 
                     verbose=FALSE,
@@ -806,7 +806,7 @@ drug targets) is depicted through circular diagrams.
 ```{r, eval=FALSE, echo=TRUE }
 
 res <- subpathwayVisualization( 
-                    data=DEsubs.out,  
+                    DEsubs.out=DEsubs.out,  
                     references=c('GO', 'TF'), 
                     submethod='community.walktrap', 
                     subname='sub1', 
@@ -825,7 +825,7 @@ library('DEsubs')
 load(system.file('extdata', 'data.RData', package='DEsubs'))
 
 res <- subpathwayVisualization( 
-                    data=DEsubs.out,  
+                    DEsubs.out=DEsubs.out,  
                     references='GO', 
                     submethod='community.walktrap', 
                     subname='sub1', 
@@ -841,7 +841,7 @@ subpathway and enriched Transcription Factors.'
 
 
 res <- subpathwayVisualization( 
-                    data=DEsubs.out,  
+                    DEsubs.out=DEsubs.out,  
                     references='TF', 
                     submethod='community.walktrap', 
                     subname='sub1', 
@@ -860,7 +860,7 @@ The number of features represented are selected using *topTerms* argument.
 ```{r, eval=FALSE, echo=TRUE}
 
 res <- organismVisualization( 
-                    data=DEsubs.out, 
+                    DEsubs.out=DEsubs.out, 
                     references='KEGG', 
                     topSubs=10, 
                     topTerms=20, 
@@ -876,7 +876,7 @@ Twenty pathways were selected as the desired number of terms.'
 
 
 res <- organismVisualization( 
-            data=DEsubs.out, 
+            DEsubs.out=DEsubs.out, 
             references='KEGG', 
             topSubs=10, topTerms=20, 
             export='plot', verbose=FALSE)

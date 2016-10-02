@@ -1,19 +1,19 @@
-.fillMatrixList  <- function( data, maxLen )
+.fillMatrixList  <- function( limat, maxLen )
 {
-    # Zero pads a list of matrices (data) each having different number of 
+    # Zero pads a list of matrices (limat) each having different number of 
     # columns. If the maximum number of columns is availiable, providing 
     # is as an argument speeds up computation time (maxlen).
-    if (is.null(data))     { return(data) }
+    if (is.null(limat))     { return(limat) }
 
     # If input is not a list, return original data
-    if (!is.list(data))    { return(data) }
+    if (!is.list(limat))    { return(limat) }
 
     lens <- c()
-    for (i in seq_len(length(data)) )
+    for (i in seq_len(length(limat)) )
     {    
-        if (!is.null(data[[i]]))
+        if (!is.null(limat[[i]]))
         {
-            lens <- c(lens, .getLengths(data[[i]]))
+            lens <- c(lens, .getLengths(limat[[i]]))
         }
     }
 
@@ -25,13 +25,13 @@
 
 
     # If no filling is necessary, return original data
-    if (length(unique(lens)) == 1) { return(data) }
+    if (length(unique(lens)) == 1) { return(limat) }
 
     # Enforce maximum length on each subpath of each pathway
-    res <- data
-    for (i in seq_len(length(data)) )
+    res <- limat
+    for (i in seq_len(length(limat)) )
     {
-        submat <- data[[i]]
+        submat <- limat[[i]]
         if (is.null(submat)) { next() }
         replmat <- matrix(0, nrow=nrow(submat), ncol=maxLen)
         for (j in seq_len(nrow(submat)) )
@@ -44,22 +44,22 @@
     return(res)
 }
 
-.unlistToMatrix  <- function( data, mode='rbind' )
+.unlistToMatrix  <- function( limat, mode='rbind' )
 {
     # Reshapes a list of matrices to one matrix in a full vectorized fashion
-    if (is.null(data))     { return(data) }
+    if (is.null(limat))     { return(limat) }
 
     # If input is already a matrix, return original data.
-    if (class(data) == 'matrix') { return(data) }
+    if (class(limat) == 'matrix') { return(limat) }
 
     # Find what type of data the list holds
     type <- NULL
-    for (i in seq_len(length(data)) )
+    for (i in seq_len(length(limat)) )
     {
-        if(!is.null(data[[i]]))
+        if(!is.null(limat[[i]]))
         {
-            if (is.vector(data[[i]])) type <- 'vector'
-            if (is.matrix(data[[i]])) type <- 'matrix'
+            if (is.vector(limat[[i]])) type <- 'vector'
+            if (is.matrix(limat[[i]])) type <- 'matrix'
             break()
         }
     }
@@ -69,25 +69,25 @@
     # List of vectors of variable size
     if (type == 'vector')
     {
-        lens <- sapply(data, function(x) { length(x) })
-        M    <- matrix(0, nrow=length(data), ncol=max(lens))
-        for (i in seq_len(length(data)) ) 
+        lens <- sapply(limat, function(x) { length(x) })
+        M    <- matrix(0, nrow=length(limat), ncol=max(lens))
+        for (i in seq_len(length(limat)) ) 
         {
-            M[i,1:lens[i]] <- data[[i]] 
+            M[i,1:lens[i]] <- limat[[i]] 
         }
-        rownames(M) <- names(data)
+        rownames(M) <- names(limat)
     }
 
     # A list of matrices with at least one common dimension size
     # rbind:same number of columns, cbind:same number of rows
     if (type == 'matrix')
     {
-        M      <- do.call(mode, data)
-        lnames <- names(data) 
+        M      <- do.call(mode, limat)
+        lnames <- names(limat) 
 
         if (length(lnames) > 0)
         {
-            lens   <- sapply(data, function(x) 
+            lens   <- sapply(limat, function(x) 
                                 { 
                                     if (!is.null(x)) nrow(x) else 0 
                                 } )
@@ -107,7 +107,7 @@
     return(M)
 }
 
-.getLengths      <- function( data )
+.getLengths      <- function( mat )
 {
     # 
     # Count length of non zero elements in each row of a matrix.
@@ -115,8 +115,8 @@
     # and a suffix of consecutive zeros denote absence of data.
     # Ideal for matrices with a large number of rows.
     #
-    esub <- cbind(data, rep(0, nrow(data)))
-    esub <- rbind(esub, c(-1, rep(0, ncol(data))))
+    esub <- cbind(mat, rep(0, nrow(mat)))
+    esub <- rbind(esub, c(-1, rep(0, ncol(mat))))
     df   <- which(diff(which(c(t(esub)) != 0)) - 1 > 0)
     len  <- c(df[1], diff(df))
 
@@ -135,3 +135,4 @@
         }
     }
 } 
+

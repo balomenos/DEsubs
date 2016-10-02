@@ -4,14 +4,14 @@
 \alias{geneVisualization}
 \title{Gene level visualization}
 \usage{
-geneVisualization(data, measures.topological, measures.functional, 
+geneVisualization(DEsubs.out, measures.topological, measures.functional, 
     measures.barplot, topGenes, colors.topological, colors.functional, 
     colors.barplot, size.topological, size.functional, size.barplot, 
     outfile.topological, outfile.functional, outfile.barplot,
     export, verbose)
 }
 \arguments{
-\item{data}{Return value from \code{\link{DEsubs}} }
+\item{DEsubs.out}{Return value from \code{\link{DEsubs}} }
 \item{measures.topological}{Functional visualization type(s). }
 \item{measures.functional}{Topological visualization type(s). }
 \item{measures.barplot}{Gene level Visualization type}
@@ -73,7 +73,7 @@ references.
 load(system.file('extdata', 'data.RData', package='DEsubs'))
 
 res <- geneVisualization(  
-            data=DEsubs.out, top=10,
+            DEsubs.out=DEsubs.out, top=10,
             measures.topological=c( 'degree', 'betweenness', 'closeness',
                                     'hub_score', 'eccentricity', 'page_rank'),
             measures.functional=c(  'KEGG', 

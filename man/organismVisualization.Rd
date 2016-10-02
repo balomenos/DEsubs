@@ -4,11 +4,11 @@
 \alias{organismVisualization}
 \title{Organism level visualization}
 \usage{
-organismVisualization( data, references, topSubs, topTerms, colors,
+organismVisualization( DEsubs.out, references, topSubs, topTerms, colors,
                         export, width, height, outfiles, verbose )
 }
 \arguments{
-\item{data}{Return value from \code{\link{DEsubs}} }
+\item{DEsubs.out}{Return value from \code{\link{DEsubs}} }
 \item{references}{Functional associations with 
     (i) KEGG's pathway terms, (ii) Gene Ontologies of Molecular function, 
     biological processes and cellular components) (iii) Disease terms 
@@ -43,7 +43,7 @@ Organism level measures
 load(system.file('extdata', 'data.RData', package='DEsubs'))
 
 res <- organismVisualization( 
-                data=DEsubs.out, references='KEGG', 
+                DEsubs.out=DEsubs.out, references='KEGG', 
                 topSubs=10, topTerms=20,
                 export='pdf', width=7, height=6,
                 verbose=FALSE)

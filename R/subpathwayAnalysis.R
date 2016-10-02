@@ -1,57 +1,14 @@
 
 subpathwayTypes <- function(grouping='all')
 {
-    stream.choices <- c('fwd',
-                        'bwd')
-    commun.choices <- c('walktrap', 
-                        'edge_betweenness', 
-                        'fast_greedy', 
-                        'leading_eigen', 
-                        'infomap', 
-                        'louvain')
-    compon.choices <- c('decompose', 
-                        'max_cliques',
-                        'cliques',
-                        'coreness')
-    topological.choices <- c(
-                        'topological.degree', 
-                        'topological.betweenness', 
-                        'topological.closeness', 
-                        'topological.hub_score', 
-                        'topological.eccentricity', 
-                        'topological.page_rank',
-                        'topological.start_nodes')
 
-    functional.choices <- paste0('functional.', .getFunctionalMeasures())
-    source.choices <- c(topological.choices, functional.choices)
-    
-    # Neighborhood
-    cases <- expand.grid( stream.choices, 'neighbourhood', source.choices)
-    neighborCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-    # Substream
-    cases <- expand.grid( stream.choices, 'stream', source.choices)
-    subStreamCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-    # Linear
-    cases <- expand.grid( stream.choices, 'cascade', source.choices)
-    linearCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-    # Community
-    cases <- expand.grid( 'community', commun.choices)
-    communityCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-    # Component
-    cases <- expand.grid( 'component', compon.choices[1:2])
-    compCases_a <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-    cases <- expand.grid( 'component.', paste0(3:9, '-', compon.choices[3]) )
-    compCases_b <- apply(cases, 1, function(x) {paste0(x, collapse='')})
-    cases <- expand.grid( 'component.', paste0(3:9, '-', compon.choices[4]) )
-    compCases_c <- apply(cases, 1, function(x) {paste0(x, collapse='')})
-    componentCases <- c(compCases_a, compCases_b, compCases_c)
+    subTypes <- .subpathwayTypes()
 
-    supportedMethods <- c(  subStreamCases, 
-                            neighborCases, 
-                            linearCases, 
-                            communityCases, 
-                            componentCases)
-
+    supportedMethods <- c(  subTypes[['subStreamCases']], 
+                            subTypes[['neighborCases']], 
+                            subTypes[['linearCases']], 
+                            subTypes[['communityCases']], 
+                            subTypes[['componentCases']])
 
     if ( is.null(grouping) || grouping == '' ) { return(NULL) }
 
@@ -76,6 +33,63 @@ subpathwayTypes <- function(grouping='all')
     }
 
     return( supportedMethods )
+}
+
+
+.subpathwayTypes <- function()
+{
+    stream.choices <- c('fwd',
+                        'bwd')
+    commun.choices <- c('walktrap', 
+                        'edge_betweenness', 
+                        'fast_greedy', 
+                        'leading_eigen', 
+                        'infomap', 
+                        'louvain'
+                        )
+    compon.choices <- c('decompose', 
+                        'max_cliques',
+                        'cliques',
+                        'coreness'
+                        )
+    topological.choices <- c(
+                        'topological.degree', 
+                        'topological.betweenness', 
+                        'topological.closeness', 
+                        'topological.hub_score', 
+                        'topological.eccentricity', 
+                        'topological.page_rank',
+                        'topological.start_nodes')
+
+    functional.choices <- paste0('functional.', .getFunctionalMeasures())
+
+    source.choices <- c(topological.choices, functional.choices)
+
+    cases <- expand.grid( stream.choices, 'neighbourhood', source.choices)
+    neighborCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
+
+    cases <- expand.grid( stream.choices, 'stream', source.choices)
+    subStreamCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
+
+    cases <- expand.grid( stream.choices, 'cascade', source.choices)
+    linearCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
+
+    cases <- expand.grid( 'community', commun.choices)
+    communityCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
+
+    cases <- expand.grid( 'component', compon.choices[1:2])
+    compCases_a <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
+    cases <- expand.grid( 'component.', paste0(3:9, '-', compon.choices[3]) )
+    compCases_b <- apply(cases, 1, function(x) {paste0(x, collapse='')})
+    cases <- expand.grid( 'component.', paste0(3:9, '-', compon.choices[4]) )
+    compCases_c <- apply(cases, 1, function(x) {paste0(x, collapse='')})
+    componentCases <- c(compCases_a, compCases_b, compCases_c)
+
+    return(list('neighborCases'=neighborCases,
+                'subStreamCases'=subStreamCases,
+                'linearCases'=linearCases,
+                'communityCases'=communityCases,
+                'componentCases'=componentCases))
 }
 
 
@@ -118,56 +132,9 @@ subpathwayTypes <- function(grouping='all')
         return (NULL)
     }
 
-    stream.choices <- c('fwd',
-                        'bwd')
-    commun.choices <- c('walktrap', 
-                        'edge_betweenness', 
-                        'fast_greedy', 
-                        'leading_eigen', 
-                        'infomap', 
-                        'louvain'
-                        )
-    compon.choices <- c('decompose', 
-                        'max_cliques',
-                        'cliques',
-                        'coreness'
-                        )
-    topological.choices <- c(
-                        'topological.degree', 
-                        'topological.betweenness', 
-                        'topological.closeness', 
-                        'topological.hub_score', 
-                        'topological.eccentricity', 
-                        'topological.page_rank',
-                        'topological.start_nodes')
+    subTypes <- .subpathwayTypes()
 
-    functional.choices <- paste0('functional.', .getFunctionalMeasures())
-
-    source.choices <- c(topological.choices, functional.choices)
-
-
-    cases <- expand.grid( stream.choices, 'neighbourhood', source.choices)
-    neighborCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-
-    cases <- expand.grid( stream.choices, 'stream', source.choices)
-    subStreamCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-
-    cases <- expand.grid( stream.choices, 'cascade', source.choices)
-    linearCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-
-    cases <- expand.grid( 'community', commun.choices)
-    communityCases <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-
-    cases <- expand.grid( 'component', compon.choices[1:2])
-    compCases_a <- apply(cases, 1, function(x) {paste0(x, collapse='.')})
-    cases <- expand.grid( 'component.', paste0(3:9, '-', compon.choices[3]) )
-    compCases_b <- apply(cases, 1, function(x) {paste0(x, collapse='')})
-    cases <- expand.grid( 'component.', paste0(3:9, '-', compon.choices[4]) )
-    compCases_c <- apply(cases, 1, function(x) {paste0(x, collapse='')})
-    componentCases <- c(compCases_a, compCases_b, compCases_c)
-
-
-    if ( method %in% neighborCases )
+    if ( method %in% subTypes[['neighborCases']] )
     {
         sourceMeasure <- gsub('fwd.neighbourhood.', '', method)
         sourceMeasure <- gsub('bwd.neighbourhood.', '', sourceMeasure)
@@ -197,7 +164,7 @@ subpathwayTypes <- function(grouping='all')
         out        <- list(R)
         names(out) <- paste0('subAnalysis.', method)
     }
-    if ( method %in% subStreamCases )
+    if ( method %in% subTypes[['subStreamCases']] )
     {
         sourceMeasure <- gsub('fwd.stream.', '', method)
         sourceMeasure <- gsub('bwd.stream.', '', sourceMeasure)
@@ -231,7 +198,7 @@ subpathwayTypes <- function(grouping='all')
         out        <- list(R)
         names(out) <- paste0('subAnalysis.', method)
     }
-    if ( method %in% linearCases )
+    if ( method %in% subTypes[['linearCases']] )
     {
         sourceMeasure <- gsub('fwd.cascade.', '', method)
         sourceMeasure <- gsub('bwd.cascade.', '', sourceMeasure)
@@ -298,69 +265,33 @@ subpathwayTypes <- function(grouping='all')
         out        <- list(lpaths)
         names(out) <- paste0('subAnalysis.', method)
     }
-    if ( method %in% communityCases )
+    if ( method %in% subTypes[['communityCases']] )
     {
-        if ( method == 'community.walktrap' )
-        { 
-            gr <- cluster_walktrap(gi)
-            R <- vector( mode='list', length=length(gr) )
-            if ( length(gr) > 0 )
-            {
-                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
-            }
-        }
-        if ( method == 'community.edge_betweenness' )
-        { 
-            gr <- cluster_edge_betweenness(gi)
-            R <- vector( mode='list', length=length(gr) )
-            if ( length(gr) > 0 )
-            {
-                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
-            }
-        }
-        if ( method == 'community.fast_greedy' )
-        { 
-            gr <- cluster_fast_greedy(as.undirected(gi))
-            R <- vector( mode='list', length=length(gr) )
-            if ( length(gr) > 0 )
-            {
-                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
-            }
-        }
-        if ( method == 'community.leading_eigen' )
-        { 
-            gr <- cluster_leading_eigen(as.undirected(gi))
-            R <- vector( mode='list', length=length(gr) )
-            if ( length(gr) > 0 )
-            {
-                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
-            }
-        }
-        if ( method == 'community.infomap' )
-        { 
-            gr <- cluster_infomap(as.undirected(gi))
-            R <- vector( mode='list', length=length(gr) )
-            if ( length(gr) > 0 )
-            {
-                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
-            }
-        }
-        if ( method == 'community.louvain' )
-        { 
-            gr <- cluster_louvain(as.undirected(gi))
-            R <- vector( mode='list', length=length(gr) )
-            if ( length(gr) > 0 )
-            {
-                for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) }
-            }       
-        }
+        communityHandlers <- c( 
+            'walktrap'=function(x) 
+                            { cluster_walktrap(x) },
+            'edge_betweenness'=function(x) 
+                            { cluster_edge_betweenness(x) },
+            'fast_greedy'=function(x) 
+                            { cluster_fast_greedy(as.undirected(x)) },
+            'leading_eigen'=function(x) 
+                            { cluster_leading_eigen(as.undirected(x)) },
+            'infomap'=function(x) 
+                            { cluster_infomap(as.undirected(x)) },
+            'louvain'=function(x) 
+                            { cluster_louvain(as.undirected(x)) })
 
-        if ( length(R) > 0 ) { names(R) <- paste0('sub', seq_len(length(R)) ) }
+        gr <- communityHandlers[[gsub('community.', '', method)]](gi)
+        R <- vector( mode='list', length=length(gr) )
+        if ( length(gr) > 0 )
+            { for ( i in seq_len(length(gr)) ) { R[[i]] <- (gr[[i]]) } }  
+        if ( length(R) > 0 ) 
+            { names(R) <- paste0('sub', seq_len(length(R)) ) }
 
         out <- list(R)
         names(out) <- paste0('subAnalysis.', method)
     }
-    if ( method %in% componentCases )
+    if ( method %in% subTypes[['componentCases']] )
     {
         if ( method == 'component.max_cliques' )
         { 
@@ -438,12 +369,12 @@ subpathwayTypes <- function(grouping='all')
     graphGenes <- names(V(graph))
     # Unique target genes in entrez 
     uGenesFromTargets <- unique(as.vector(targets))
-    uGenesFromTargets <- unname(.changeAnnotation(data=uGenesFromTargets, 
+    uGenesFromTargets <- unname(.changeAnnotation(annData=uGenesFromTargets, 
                                 org='hsa', choice='HGNCtoEntrez'))
     uGenesFromTargets <- uGenesFromTargets[!is.na(uGenesFromTargets)]
     # Keep targets intersecting with graph genes
     targetGenesInGraph <- graphGenes[graphGenes %in% uGenesFromTargets]
-    targetGenesInGraph <- unname(.changeAnnotation(data=targetGenesInGraph, 
+    targetGenesInGraph <- unname(.changeAnnotation(annData=targetGenesInGraph, 
                                 org='hsa', choice='entrezToHGNC'))
 
     # Filter target genes with graph genes
@@ -452,7 +383,7 @@ subpathwayTypes <- function(grouping='all')
 
     nodes <- names(sort(table(targets), decreasing=TRUE))
     # Change to entrez gene annotation
-    nodes <- unname(.changeAnnotation(data=nodes, org=org, 
+    nodes <- unname(.changeAnnotation(annData=nodes, org=org, 
                     choice='HGNCtoEntrez'))
 
     return (nodes)
@@ -461,40 +392,16 @@ subpathwayTypes <- function(grouping='all')
 
 .measureToNodes <- function ( graph, measure, org, DEgenes=NULL )
 {
-    if ( measure == 'topological.degree' ) 
-    { 
-        nodes <- names(sort(degree(graph), decreasing=TRUE))
-    }
-    if ( measure == 'topological.betweenness' ) 
-    { 
-        nodes <- names(sort(betweenness(graph), decreasing=TRUE))
-    }
-    if ( measure == 'topological.closeness' ) 
+    topologicalHandlers <- .getTopologicalHandlers()
+
+    if ( grepl('topological', measure) )
     {
-        nodes <- names(sort(closeness(graph), decreasing=TRUE))
+        func <- topologicalHandlers[[gsub('topological.', '', measure)]]
+        nodes <- names(sort(func(graph), decreasing=TRUE)) 
     }
-    if ( measure == 'topological.hub_score' ) 
-    { 
-        nodes <- names(sort(hub_score(graph)[['vector']], decreasing=TRUE))
-    }
-    if ( measure == 'topological.eccentricity' ) 
-    { 
-        nodes <- names(sort(eccentricity(graph), decreasing=TRUE))
-    }
-    if ( measure == 'topological.page_rank' ) 
-    { 
-        nodes <- names(sort(page_rank(graph)[['vector']], decreasing=TRUE))
-    }
-    if ( measure == 'topological.start_nodes' ) 
-    {
-        func <- function(x) 
-                { which(degree(x, mode='in', loops=FALSE) == 0) } 
-        nodes <- names(sort(func(graph), decreasing=TRUE))
-    }
+
     if ( measure == 'functional.DEG' ) 
-    { 
-        nodes <- names(sort(DEgenes, decreasing=FALSE))
-    }
+        { nodes <- names(sort(DEgenes, decreasing=FALSE)) }
 
     if ( measure %in% paste0('functional.', .getExternalMeasures() ) )
     {
@@ -508,18 +415,33 @@ subpathwayTypes <- function(grouping='all')
         # Find genes with most occurences in the selected term
         measure <- gsub('functional.', '', measure)
         targets <- .loadTermData( type=measure )
+        if ( is.null(targets) )
+            { return(NULL) }
         nodes <- .getFunctionalNodes(graph=graph, targets=targets, org=org)
     }
 
     return( nodes )
 }
 
+.getTopologicalHandlers <- function()
+{
+    topologicalHandlers <- c( 
+                'degree'=function(x) { degree(x) },
+                'betweenness'=function(x) { betweenness(x) },
+                'closeness'=function(x) { closeness(x) },
+                'hub_score'=function(x) { hub_score(x)[['vector']] },
+                'eccentricity'=function(x) { eccentricity(x) },
+                'page_rank'=function(x) { page_rank(x)[['vector']] },
+                'start_nodes'=function(x) 
+                    { which(degree(x, mode='in', loops=FALSE) == 0) } )
 
+    return( topologicalHandlers )
+}
 
 #
 # Data-related functions
 #
-.changeAnnotation <- function(data, org, choice)
+.changeAnnotation <- function(annData, org, choice)
 {
     if ( org == 'hsa' )
     {
@@ -530,33 +452,30 @@ subpathwayTypes <- function(grouping='all')
         libraryEntrezToHGNC <- e[['libraryEntrezToHGNC']]
         if ( choice == 'entrezToHGNC' )
         {
-            data <- libraryEntrezToHGNC[data]    
+            annData <- libraryEntrezToHGNC[annData]    
         }
         if ( choice == 'HGNCtoEntrez' )
         {
             libraryHGNCtoEntrez <- names(libraryEntrezToHGNC)
             names(libraryHGNCtoEntrez) <- libraryEntrezToHGNC
-            data <- libraryHGNCtoEntrez[data]    
+            annData <- libraryHGNCtoEntrez[annData]    
         }
     }
 
-    return(data)
+    return(annData)
 }
 
 .getExternalMeasures <- function()
 {
-    defaultReferences <- c( 'KEGG',
-                            'GO_bp',
-                            'GO_cc',
-                            'GO_mf',
-                            'Disease_OMIM',
-                            'Disease_GAD',
-                            'Drug_DrugBank',
-                            'miRNA',
-                            'TF')
+    defaultReferences <- .getDefaultReferences()
 
-    # Search for new gene sets
-    files <- list.files(cache[['datDir']])
+    # The default datasets for external measures are stored in the Data
+    # folder within the package directory. The user however can include 
+    # any number of gene-sets within cache[['datDir']] directory.
+    # The availiable external measures will be the union of gene-sets in
+    # both directories. 
+
+    files <- list.files(system.file('extdata//Data', package='DEsubs'))
     otherFiles <- c('libraryEntrezToHGNC.RData', 
                     'edgeLists.RData',
                     'libraryEntrezToExternalNomenclature.RData')
@@ -571,6 +490,12 @@ subpathwayTypes <- function(grouping='all')
     }
     supportedReferences <- gsub('.RData', '', files)
 
+    # Search for new gene sets
+    userReferences <- gsub('.RData', '', list.files(cache[['datDir']]))
+
+    supportedReferences <- unique(c(supportedReferences, userReferences))
+
+
     return( supportedReferences )
 }
 
@@ -580,6 +505,20 @@ subpathwayTypes <- function(grouping='all')
     return( c('DEG', .getExternalMeasures()) )
 }
 
+.getDefaultReferences <- function()
+{
+    # Default external references stored within the package library
+    defaultReferences <- c( 'KEGG',
+                            'GO_bp',
+                            'GO_cc',
+                            'GO_mf',
+                            'Disease_OMIM',
+                            'Disease_GAD',
+                            'Drug_DrugBank',
+                            'miRNA',
+                            'TF')
+    return( defaultReferences )
+}
 
 #
 # Base data
@@ -587,17 +526,21 @@ subpathwayTypes <- function(grouping='all')
 
 .loadTermData <- function( type )
 {
-    dir <- cache[['datDir']]
-    supportedTerms <- .getExternalMeasures()
+    references <- .getExternalMeasures()
+    defaultReferences <- .getDefaultReferences()
+    userReferences <- references[!references %in% defaultReferences ]
 
-    if ( type %in% .getExternalMeasures() )
+    if ( type %in% userReferences )
+        { dir <- cache[['datDir']] }
+    if ( type %in% defaultReferences )
+        { dir <- system.file('extdata//Data', package='DEsubs') }
+
+    if ( type %in% references )
     {
         iFile <- paste0( dir, '//' ,type, '.RData' )
         load(iFile, e <- new.env())        
         targetsPerClass <- e[['targetsPerClass']]
-    }else{
-        message('Type ', type, ' not supported.')
-    }
+    } else{ message('Type ', type, ' not supported.') }
 
     if ( is.null(targetsPerClass) )
         { message('Set ', type, ' does not contain valid targers.') }

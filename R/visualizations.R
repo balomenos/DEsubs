@@ -1,14 +1,17 @@
 # Gene level visualizations
-.matrixVisualization <- function( data, type, title='', colors, width, height,
-                                outfile, export )
+.matrixVisualization <- function( dataVis, type, title='', colors, width, 
+                                height, outfile, export )
 {
     export <- tolower(export)
     # Create user specified directory structure 
     if ( (outfile != '') && ('pdf' %in% export) ) 
         { .dir.create.rec(outfile) }
+    # Create the default directory if it does not exist
+    if ( (outfile == '') && ('pdf' %in% export) )
+        { dir.create(cache[['outDir']], showWarnings=FALSE, recursive=TRUE) }
 
     # Create the visualization
-    outfile <- visMatrix( data=new(type, mat=data), 
+    outfile <- visMatrix( dataVis=new(type, mat=dataVis), 
             title=title, colors=colors, width=width, height=height, 
             outfile=outfile, export=export )  
     
@@ -22,7 +25,7 @@
 }
 
 # Heatmap visualization
-.visMatrix.heatmap <- function( data, title, 
+.visMatrix.heatmap <- function( dataVis, title, 
                     colors=colorRampPalette(c("white", "red"))(100), 
                     width, height, outfile, export )
 {
@@ -39,7 +42,7 @@
         { pdf(outfile, width=width, height=height, onefile=FALSE) }
 
 
-    hmap <- pheatmap(data@mat, 
+    hmap <- pheatmap(dataVis@mat, 
                 cluster_rows=FALSE, 
                 cluster_cols=FALSE,
                 cellwidth=40,
@@ -51,7 +54,7 @@
 }
 
 # Barplot visualization
-.visMatrix.barplot <- function( data, title, colors='#C7EDFCFF', 
+.visMatrix.barplot <- function( dataVis, title, colors='#C7EDFCFF', 
                     width, height,outfile, export )
 {
     if ( 'plot' %in% tolower(export) )
@@ -60,14 +63,14 @@
     if ( outfile == '' ) 
     {
         # Use base dir for default storage
-        outfile <- paste0(cache[['outDir']] , '//barplot', title, '.pdf') 
+        outfile <- paste0(cache[['outDir']] , '//barplot', title, '.pdf')
     }
 
     # Create a pdf device if no plot is displayed
     if ( 'pdf' %in% export && (!'plot' %in% export ) )
         { pdf(outfile, width=width, height=height, onefile=FALSE) }
 
-    midpoints <- barplot(data@mat, 
+    midpoints <- barplot(dataVis@mat, 
                     col = colors[1], 
                     horiz=TRUE, 
                     xlab='-log10(Q.value)',
@@ -75,20 +78,20 @@
                     axes = TRUE, axisnames = FALSE, 
                     border=NA)
     text(x=0, y=midpoints-0.1, pos=4, cex=0.75, 
-        labels=names(data@mat))
+        labels=names(dataVis@mat))
                     
     return(outfile)
 }
 
 # Dotplot visualization
-.visMatrix.dotplot <- function( data, title, 
+.visMatrix.dotplot <- function( dataVis, title, 
                         colors=colorRampPalette(c("white", "red"))(100), 
                         width, height, outfile, export )
 {
     if ( outfile == '' ) 
     {
         # Use base dir for default storage
-        outfile <- paste0(cache[['outDir']], '//dotplot_', title[2], '.pdf') 
+        outfile <- paste0(cache[['outDir']], '//dotplot_', title[2], '.pdf')
     }
 
     # Create a pdf device if no plot is displayed. If it is, the 
@@ -96,9 +99,9 @@
     if ( 'pdf' %in% export && (!'plot' %in% export ) )
         { pdf(outfile, width=width, height=height, onefile=FALSE) }
 
-    data <- data@mat
-    print(qplot(data[, 1], data[, 2], data = data, 
-                colour = data[, 3], size=I(3))
+    dataVis <- dataVis@mat
+    print(qplot(dataVis[, 1], dataVis[, 2], data = dataVis, 
+                colour = dataVis[, 3], size=I(3))
                 + theme_classic() + geom_point()
                 + scale_colour_gradientn(colours=colors)
                 + labs(x=title[1], y=title[2], colour=title[3])
@@ -112,16 +115,16 @@
 setClass('heatmap', representation ( mat= "matrix" ) )
 setClass('barplot', representation ( mat= "numeric" ) )
 setClass('dotplot', representation ( mat= "data.frame" ) )
-setGeneric('visMatrix', function(data, ...) standardGeneric('visMatrix'))
-setMethod('visMatrix', signature(data='heatmap') , .visMatrix.heatmap)
-setMethod('visMatrix', signature(data='barplot'), .visMatrix.barplot)
-setMethod('visMatrix', signature(data='dotplot'), .visMatrix.dotplot)
+setGeneric('visMatrix', function(dataVis, ...) standardGeneric('visMatrix'))
+setMethod('visMatrix', signature(dataVis='heatmap') , .visMatrix.heatmap)
+setMethod('visMatrix', signature(dataVis='barplot'), .visMatrix.barplot)
+setMethod('visMatrix', signature(dataVis='dotplot'), .visMatrix.dotplot)
 
 
 # Subpathway to graph visualization
-subpathwayToGraph <- function(data, submethod, subname, colors, size=c(4,4), 
-                                export='pdf', width, height, outfile, 
-                                verbose=TRUE)
+subpathwayToGraph <- function(DEsubs.out, submethod, subname, colors, 
+                                size=c(4,4), export='pdf', width, height, 
+                                outfile, verbose=TRUE)
 {
     if ( verbose )
         { message('Visualizing the subpathway as a graph...', 
@@ -134,6 +137,9 @@ subpathwayToGraph <- function(data, submethod, subname, colors, size=c(4,4),
             { outfile <- gsub('\\*', 'pdf', outfile) }
         .dir.create.rec(outfile)
     }
+
+    if ( missing(outfile) && !doPlot )
+        { dir.create(cache[['outDir']], showWarnings=FALSE, recursive=TRUE) }
 
     # Assign node colors according to pValue of node
     if (missing(colors))
@@ -155,7 +161,7 @@ subpathwayToGraph <- function(data, submethod, subname, colors, size=c(4,4),
                                     paste(exportTypes, collapse=', '), '.')
     }
 
-    edgeList <- data[['edgeList']]
+    edgeList <- DEsubs.out[['edgeList']]
     supportedMethods <- subpathwayTypes()
 
     unsupportedOptions <- submethod[!submethod %in% supportedMethods]
@@ -169,7 +175,7 @@ subpathwayToGraph <- function(data, submethod, subname, colors, size=c(4,4),
     }
 
     submethodName <- paste0('subAnalysis.', submethod)
-    subpathway.nodelist <- data[[submethodName]][[subname]]
+    subpathway.nodelist <- DEsubs.out[[submethodName]][[subname]]
 
     if ( is.null(subpathway.nodelist) )
     {
@@ -183,23 +189,23 @@ subpathwayToGraph <- function(data, submethod, subname, colors, size=c(4,4),
     idx <- intersect(idx1, idx2)
     subpathway.edgelist <- edgeList[idx, ]
 
-    DEgenes<- data[['DEgenes']]
+    DEgenes<- DEsubs.out[['DEgenes']]
     subpathway.nodelist <- DEgenes[names(DEgenes) %in% subpathway.nodelist]
     subpathway.nodelist <- data.frame(  'genes'=names(subpathway.nodelist),
                                         'degree'=unname(subpathway.nodelist),
                                         stringsAsFactors=FALSE )
     idx <- order(as.numeric(subpathway.nodelist[, 1]))
     subpathway.nodelist <- subpathway.nodelist[idx, ]
-    org <- data[['org']]
+    org <- DEsubs.out[['org']]
 
     if (org == 'hsa')
     {
         # Change to gene names
         subpathway.edgelist[, 1] <- .changeAnnotation(   
-                                    data=subpathway.edgelist[, 1], 
+                                    annData=subpathway.edgelist[, 1], 
                                     org=org, choice='entrezToHGNC' )
         subpathway.edgelist[, 2] <- .changeAnnotation(   
-                                    data=subpathway.edgelist[, 2], 
+                                    annData=subpathway.edgelist[, 2], 
                                     org=org, choice='entrezToHGNC' )
     }
 
@@ -265,7 +271,7 @@ subpathwayToGraph <- function(data, submethod, subname, colors, size=c(4,4),
         dir <- cache[['outDir']]
 
         if ( missing(outfile) )
-            { out <- paste0(dir, '//subplot_', subname, '.pdf')  } 
+            { out <- paste0(dir, '//subplot_', subname, '.pdf') }
         if ( !missing(outfile) )
             { out <- outfile } 
 

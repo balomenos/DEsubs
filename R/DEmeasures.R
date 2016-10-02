@@ -1,7 +1,7 @@
 # Gene level measures
 #
 
-geneVisualization <- function ( data, 
+geneVisualization <- function ( DEsubs.out, 
                 measures.topological='all', 
                 measures.functional='all',
                 measures.barplot=TRUE, 
@@ -21,10 +21,10 @@ geneVisualization <- function ( data,
     if ( verbose )
         { message('Generating gene-level view...', appendLF = FALSE) }
     
-    edgeList <- data[['edgeList']]
-    DEgenes  <- data[['DEgenes']]
-    org      <- data[['org']]
-    nomen    <- data[['mRNAnomenclature']]
+    edgeList <- DEsubs.out[['edgeList']]
+    DEgenes  <- DEsubs.out[['DEgenes']]
+    org      <- DEsubs.out[['org']]
+    nomen    <- DEsubs.out[['mRNAnomenclature']]
 
     if ( length(DEgenes) < topGenes ) { topGenes <- length(DEgenes) }
 
@@ -92,8 +92,8 @@ geneVisualization <- function ( data,
     if (  measures.barplot )
     {
 
-        names(topGenes) <- .changeAnnotation(data=names(topGenes), org='hsa',
-                                            choice='entrezToHGNC')
+        names(topGenes) <- .changeAnnotation(annData=names(topGenes), 
+                                    org='hsa', choice='entrezToHGNC')
 
         .matrixVisualization( -log10(topGenes), type='barplot', title='',
                             colors=colors.barplot, 
@@ -129,37 +129,13 @@ geneVisualization <- function ( data,
 
     gi   <- graph_from_edgelist(as.matrix(edgeList[, 1:2]))
     topo <- list()
-
-    if ( 'degree' %in% measures )
+    topologicalHandlers <- .getTopologicalHandlers()
+    for ( i in seq_len(length(measures)) )
     {
-        res.degree <- sort(degree( gi ), decreasing=TRUE)
-        topo <- c(topo, list('degree'=res.degree))
+        res <- sort(topologicalHandlers[[measures[i]]](gi), decreasing=TRUE)
+        topo <- c(topo, list(res))
     }
-    if ( 'betweenness' %in% measures )
-    {
-        res.betweenness <- sort(betweenness( gi ), decreasing=TRUE)
-        topo <- c(topo, list('betweenness'=res.betweenness))
-    }
-    if ( 'closeness' %in% measures )
-    {
-        res.closeness <- sort(closeness( gi ), decreasing=TRUE)
-        topo <- c(topo, list('closeness'=res.closeness))
-    }
-    if ( 'hubness' %in% measures )
-    {
-        res.hubness <- sort(hub_score( gi )[['vector']], decreasing=TRUE)
-        topo <- c(topo, list('hubness'=res.hubness))
-    }
-    if ( 'eccentricity' %in% measures )
-    {
-        res.eccentricity <- sort(eccentricity( gi ), decreasing=TRUE)
-        topo <- c(topo, list('eccentricity'=res.eccentricity))
-    }
-    if ( 'page_rank' %in% measures )
-    {
-        res.page_rank <- sort(page_rank( gi )[['vector']], decreasing=TRUE)
-        topo <- c(topo, list('page_rank'=res.page_rank))
-    }
+    names(topo) <- measures
 
     uGenes  <- unique(as.vector(as.matrix(edgeList[, 1:2])))
     ranking <- matrix(, nrow=length(uGenes), ncol=length(topo))
@@ -182,11 +158,11 @@ geneVisualization <- function ( data,
 
     if ( visualize )
     {
-        rownames(ranking) <- .changeAnnotation(  data=rownames(ranking), 
+        rownames(ranking) <- .changeAnnotation( annData=rownames(ranking), 
                                                 org='hsa',
                                                 choice='entrezToHGNC')
 
-        .matrixVisualization( data=as.matrix(ranking), 
+        .matrixVisualization( dataVis=as.matrix(ranking), 
                                 type='heatmap', title='topological',
                                 colors=colors,
                                 width=width,
@@ -211,13 +187,19 @@ geneVisualization <- function ( data,
     if ( missing (measures) ) { measures <- supportedTerms }
 
     # Change gene annotation to HGNC for hsa 
-    names(topGenes) <- .changeAnnotation(data=names(topGenes), org='hsa',
+    names(topGenes) <- .changeAnnotation(annData=names(topGenes), org='hsa',
                                         choice='entrezToHGNC')
 
     ranking <- matrix(, nrow=length(topGenes), ncol=length(measures))
+    invalidIdx <- c()
     for ( j in seq_len(length(measures)) )
     {
-        targets <- .loadTermData( type=measures[j] )    
+        targets <- .loadTermData( type=measures[j] )
+        if ( is.null(targets) )
+        {
+            invalidIdx <- c(invalidIdx, j)
+            next()
+        }
         for ( i in seq_len(length(topGenes)) )
         {
             idx <- targets %in% names(topGenes[i])
@@ -231,10 +213,11 @@ geneVisualization <- function ( data,
     }
     rownames(ranking) <- names(topGenes)
     colnames(ranking) <- measures
+    if ( length(invalidIdx) > 0 ) { ranking <- ranking[, -invalidIdx]}
 
     if ( visualize )
     {
-        .matrixVisualization( data=(as.matrix(ranking) ), 
+        .matrixVisualization( dataVis=(as.matrix(ranking) ), 
                             type='heatmap', title='external.references',
                             colors=colors,
                             width=width,
@@ -268,6 +251,7 @@ geneVisualization <- function ( data,
 
     # Access local Rdata diles
     targets <- .loadTermData( type )
+    if (is.null(targets)) { return(NULL) }
 
     # Calculate p-values for each class
     N        <- nrow(targets)
@@ -351,7 +335,7 @@ geneVisualization <- function ( data,
 }
 
 
-subpathwayVisualization <- function( data, 
+subpathwayVisualization <- function( DEsubs.out, 
                                 references='', 
                                 submethod, 
                                 subname,
@@ -389,7 +373,7 @@ subpathwayVisualization <- function( data,
 
     for ( i in seq_len(length(references)) )
     {
-        .subpathwayVisualization(data=data,
+        .subpathwayVisualization(DEsubs.out=DEsubs.out,
                                 reference=references[i],
                                 submethod=submethod,
                                 subname=subname,
@@ -403,13 +387,13 @@ subpathwayVisualization <- function( data,
     }
 }
 
-.subpathwayVisualization <- function( data, reference, submethod, subname,
-                                    colors, scale, shuffleColors, 
+.subpathwayVisualization <- function( DEsubs.out, reference, submethod, 
+                                    subname, colors, scale, shuffleColors, 
                                     outfile, export, verbose)
 {
 
-    org <- data[['org']]
-    edgeList <- data[['edgeList']]
+    org <- DEsubs.out[['org']]
+    edgeList <- DEsubs.out[['edgeList']]
 
     if ( org != 'hsa' ) 
         { return(NULL) } # Homo sapiens only
@@ -443,7 +427,7 @@ subpathwayVisualization <- function( data,
 
     # Subpathway information extraction
     submethodName <- paste0('subAnalysis.', submethod)
-    subpathway.nodelist <- data[[submethodName]][[subname]]
+    subpathway.nodelist <- DEsubs.out[[submethodName]][[subname]]
 
     # Subpathway (nodelist) to edgelist
     idx1 <- which(edgeList[, 1] %in% subpathway.nodelist)
@@ -452,7 +436,7 @@ subpathwayVisualization <- function( data,
     subpathway.edgelist <- edgeList[idx, ]
 
     # Change annotation from entrez to HGNC
-    subpathway.nodelist <- .changeAnnotation(data=subpathway.nodelist, 
+    subpathway.nodelist <- .changeAnnotation(annData=subpathway.nodelist, 
                         org='hsa', choice='entrezToHGNC')
     subpathway.nodelist <- unname(subpathway.nodelist)
 
@@ -538,6 +522,7 @@ subpathwayVisualization <- function( data,
     # No custom directory has been supplied
     if ( (outfile == '') && ('pdf' %in% export) )
     {
+        dir.create(cache[['outDir']], showWarnings=FALSE, recursive=TRUE)
         outfile <- paste0(cache[['outDir']] , '//circos_', reference ,'.pdf')
     }
 
@@ -559,7 +544,7 @@ subpathwayVisualization <- function( data,
 #
 # Organism level measures
 #
-organismVisualization <- function( data, 
+organismVisualization <- function( DEsubs.out, 
                             references='', 
                             topSubs=10, 
                             topTerms=20, 
@@ -571,7 +556,7 @@ organismVisualization <- function( data,
                             verbose=TRUE )
 {
     # Homo sapiens only
-    org <- data[['org']]
+    org <- DEsubs.out[['org']]
     if (org != 'hsa') { return(NULL) }
 
     if ( 'all' %in% references )
@@ -588,7 +573,7 @@ organismVisualization <- function( data,
 
     for ( i in seq_len(length(references)) )
     {
-        res <- .organismVisualization(data=data,
+        res <- .organismVisualization(DEsubs.out=DEsubs.out,
                                     references=references[i],
                                     topSubs=topSubs,
                                     topTerms=topTerms,
@@ -604,12 +589,12 @@ organismVisualization <- function( data,
     return(invisible())
 }
 
-.organismVisualization <- function( data, references, topSubs, topTerms,
+.organismVisualization <- function( DEsubs.out, references, topSubs, topTerms,
                                     colors, export, width, height, 
                                     outfile, verbose )
 {
 
-    org <- data[['org']]
+    org <- DEsubs.out[['org']]
     type <- references
     supportedTerms <- .getExternalMeasures()
 
@@ -626,7 +611,7 @@ organismVisualization <- function( data,
         return(invisible())
     }
 
-    subpathways <- data[[5]]
+    subpathways <- DEsubs.out[[5]]
     termsPerSub <- list()
     pValuesPerTermPerSub <- list()
     pathNames <- c()
@@ -645,7 +630,7 @@ organismVisualization <- function( data,
     # Find most significant terms for each subpathway
     for ( i in seq_len(length(subpathways)) )
     {
-        sub <- unname(.changeAnnotation(data=subpathways[[i]], org=org,
+        sub <- unname(.changeAnnotation(annData=subpathways[[i]], org=org,
                     choice='entrezToHGNC'))
         edgeList <- .subLevelMeasures(subpathway=sub, type=type, 
                     topTerms=top['subpathways'])
@@ -656,6 +641,12 @@ organismVisualization <- function( data,
             pValuesPerTermPerSub[[i]] <- pval
             pathNames <- c(pathNames, names(subpathways)[i] )
         }
+    }
+
+    if ( length(termsPerSub) == 0) 
+    {
+        message('done', appendLF = TRUE) 
+        return(NULL) 
     }
     
     # Convert lists to adjacency matrices
@@ -692,8 +683,8 @@ organismVisualization <- function( data,
         data2 <- expand.grid(   rownames(termsPerSub)[i], 
                                 pValuesPerTermPerSub[i, ] - offset )
 
-        data  <- cbind(data1, data2[, 2])
-        termsPerSub.edgeList[start:end, ] <- as.matrix(data)        
+        data.all <- cbind(data1, data2[, 2])
+        termsPerSub.edgeList[start:end, ] <- as.matrix(data.all)        
     }
 
     # Remove NA's
@@ -710,7 +701,7 @@ organismVisualization <- function( data,
     termsPerSub.df[, 'pValue'] <- as.numeric(termsPerSub.df[, 'pValue'])
 
 
-    .matrixVisualization(data=termsPerSub.df, type='dotplot', 
+    .matrixVisualization(dataVis=termsPerSub.df, type='dotplot', 
                         title=c('Subpathway', type, 'Q-values'),
                         colors=colors,
                         width=width, height=height,

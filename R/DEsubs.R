@@ -3,12 +3,12 @@ DEsubs <- function( org, mRNAexpr, mRNAnomenclature, pathways,
                     rankedList=NULL, verbose=TRUE)
 {
     # Create the adjacency matrix
-    data <- .constructNetwork(org=org, 
+    dataNet <- .constructNetwork(org=org, 
                             mRNAexpr=mRNAexpr, 
                             mRNAnomenclature=mRNAnomenclature, 
                             pathways=pathways)
-    mRNAexpr <- data[['mRNAexpr']]
-    edgeList <- data[['edgeList']]
+    mRNAexpr <- dataNet[['mRNAexpr']]
+    edgeList <- dataNet[['edgeList']]
 
     # Filter the nodes and the edges of the organism's pathways network
     lens     <- suppressWarnings(split(1:ncol(mRNAexpr), 1:2))

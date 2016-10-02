@@ -4,11 +4,11 @@
 \alias{subpathwayToGraph}
 \title{Subpathway To Graph}
 \usage{
-subpathwayToGraph( data, submethod, subname, colors, size, export, 
+subpathwayToGraph( DEsubs.out, submethod, subname, colors, size, export, 
                     width, height, outfile, verbose )
 }
 \arguments{
-\item{data}{Return value from \code{\link{DEsubs}}}
+\item{DEsubs.out}{Return value from \code{\link{DEsubs}}}
 \item{submethod}{Subpathway extraction type selection 
     (get all availiable options from \link{subpathwayTypes})}
 \item{subname}{Subpathway name as contained in \code{\link{DEsubs}} return 
@@ -16,7 +16,7 @@ value, i.e. 'sub1'. }
 \item{colors}{ A custom color mode which overrides the default settings. }
 \item{size}{ A vector storing width and height of the barplot
 visualization. }
-\item{export}{ A set of options for exporting subpathway data. Possible options 
+\item{export}{ A set of options for exporting subpathway data. Possible options
 are 'plot', 'pdf', 'edgelist', 'json', 'gml', 'ncol', 'lgl', 'graphml','dot'.}
 \item{width}{ The width of the printable area (pdf) }
 \item{height}{ The height of the printable area (pdf) }
@@ -36,7 +36,7 @@ load(system.file('extdata', 'data.RData', package='DEsubs'))
 
 
 res <- subpathwayToGraph( 
-                data=DEsubs.out, 
+                DEsubs.out=DEsubs.out, 
                 submethod='community.walktrap', 
                 subname=paste0('sub', 6),
                 size=c(10,10),

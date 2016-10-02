@@ -4,11 +4,11 @@
 \alias{subpathwayVisualization}
 \title{Subpathway level visualization}
 \usage{
-subpathwayVisualization( data, references, submethod, subname, colors, 
+subpathwayVisualization( DEsubs.out, references, submethod, subname, colors, 
                         scale, shuffleColors, outfiles, export, verbose )
 }
 \arguments{
-\item{data}{Return value from \code{\link{DEsubs}}.}
+\item{DEsubs.out}{Return value from \code{\link{DEsubs}}.}
 \item{references}{Topological references include degree, betweeness centrality,
     closeness centrality, hub_score, eccentricity and page_rank. 
     The corresponding options are 'degree', 'betweenness',  'closeness', 
@@ -55,7 +55,7 @@ issues.
 load(system.file('extdata', 'data.RData', package='DEsubs'))
 
 res <- subpathwayVisualization( 
-                data=DEsubs.out,  
+                DEsubs.out=DEsubs.out,  
                 references=c('TF'), 
                 submethod='community.walktrap',
                 subname='sub1', 

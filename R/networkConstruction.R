@@ -90,13 +90,13 @@
     # as input and no buit-in method is used, even if it selected
     if ( !is.null(rankedList) )
     {
-        # A filename is given as input, stored within 'extdata/User' directory
+        # A filepath is given as input
         if ( class(rankedList) != 'numeric')
         {
-            file <- paste0(cache[['usrDir']], '//', rankedList)
-            data <- read.table(file, dec = '.', sep=' ')
-            genes <- as.numeric(data[, 2]) # Q-values
-            names(genes) <- data[, 1] # Gene names
+            file <- rankedList
+            rankedList.data <- read.table(file, dec = '.', sep=' ')
+            genes <- as.numeric(rankedList.data[, 2]) # Q-values
+            names(genes) <- rankedList.data[, 1] # Gene names
         }
         # A ranked list of differentially expressed genes is given as input,
         # in the form of a named vector, storing the Q-values and the gene
